@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>ru.ixlax</groupId>
 	<artifactId>hackaton</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>hackaton</name>
 	<description>Hackaton Admin project for Spring Boot</description>
 	<url/>
