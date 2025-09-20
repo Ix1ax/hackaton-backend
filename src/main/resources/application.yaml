@@ -7,6 +7,8 @@ spring:
   jpa:
     hibernate.ddl-auto: update
     show-sql: false
+  profiles:
+    active: stub
 
 server:
   port: 8080
@@ -18,6 +20,10 @@ app:
     key: local-secret
     peers: ${PEERS:}
   # registry-url: http://gateway/api/peers
+  sensors:
+    simulate:
+      enabled: true
+      period-ms: 10000     # раз в 10 секунд
 
 cors:
   origins: "*"

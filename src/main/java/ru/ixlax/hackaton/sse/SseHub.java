@@ -1,4 +1,3 @@
-// src/main/java/ru/ixlax/hackaton/sse/SseHub.java
 package ru.ixlax.hackaton.sse;
 
 import org.springframework.http.codec.ServerSentEvent;
@@ -11,11 +10,9 @@ import ru.ixlax.hackaton.api.publicapi.dto.NewsDto;
 @Component
 public class SseHub {
 
-    // Узкоспециализированный поток только инцидентов
     private final Sinks.Many<ServerSentEvent<IncidentDto>> incidentSink =
             Sinks.many().multicast().onBackpressureBuffer();
 
-    // Общий поток любых событий (incident/news/sensor)
     private final Sinks.Many<ServerSentEvent<Object>> eventSink =
             Sinks.many().multicast().onBackpressureBuffer();
 
@@ -27,16 +24,15 @@ public class SseHub {
         return eventSink.asFlux();
     }
 
-    // Публикация инцидента и в специализированный, и в общий потоки
     public void publish(IncidentDto dto) {
         var incidentEv = ServerSentEvent.builder(dto)
                 .event("incident")
-                .build(); // <- это ServerSentEvent<IncidentDto>
+                .build();
         incidentSink.tryEmitNext(incidentEv);
 
         var allEv = ServerSentEvent.<Object>builder()
                 .event("incident")
-                .data(dto) // <- теперь тип payload = Object
+                .data(dto)
                 .build();
         eventSink.tryEmitNext(allEv);
     }

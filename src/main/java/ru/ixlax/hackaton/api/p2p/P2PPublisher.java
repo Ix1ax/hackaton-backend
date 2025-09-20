@@ -7,8 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import ru.ixlax.hackaton.api.p2p.dto.EventEnvelope;
 import ru.ixlax.hackaton.api.publicapi.dto.IncidentDto;
+import ru.ixlax.hackaton.api.publicapi.dto.PlaceDto;
+import ru.ixlax.hackaton.api.publicapi.dto.SensorDto;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -22,9 +23,27 @@ public class P2PPublisher {
 
     private final Queue<EventEnvelope> outbox = new ConcurrentLinkedQueue<>();
 
+    public void broadcastNews(java.util.List<ru.ixlax.hackaton.api.publicapi.dto.NewsDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) return;
+        outbox.add(new EventEnvelope("NEWS", nodeId, System.currentTimeMillis(), dtos, null));
+        drain();
+    }
+
     public void broadcastIncidents(List<IncidentDto> dtos){
         if (dtos==null || dtos.isEmpty()) return;
         outbox.add(new EventEnvelope("INCIDENT", nodeId, System.currentTimeMillis(), dtos, null));
+        drain();
+    }
+
+    public void broadcastPlaces(List<PlaceDto> dtos){
+        if (dtos==null || dtos.isEmpty()) return;
+        outbox.add(new EventEnvelope("PLACE", nodeId, System.currentTimeMillis(), dtos, null));
+        drain();
+    }
+
+    public void broadcastSensors(List<SensorDto> dtos){
+        if (dtos==null || dtos.isEmpty()) return;
+        outbox.add(new EventEnvelope("SENSOR", nodeId, System.currentTimeMillis(), dtos, null));
         drain();
     }
 
@@ -48,11 +67,5 @@ public class P2PPublisher {
             }
             if (anyOk) outbox.poll(); else break;
         }
-    }
-
-    public void broadcastNews(java.util.List<ru.ixlax.hackaton.api.publicapi.dto.NewsDto> dtos){
-        if (dtos==null || dtos.isEmpty()) return;
-        outbox.add(new EventEnvelope("NEWS", nodeId, System.currentTimeMillis(), dtos, null));
-        drain();
     }
 }

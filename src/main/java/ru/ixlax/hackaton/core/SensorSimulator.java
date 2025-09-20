@@ -1,4 +1,3 @@
-// src/main/java/ru/ixlax/hackaton/core/SensorSimulator.java
 package ru.ixlax.hackaton.core;
 
 import lombok.RequiredArgsConstructor;
@@ -22,25 +21,22 @@ public class SensorSimulator {
     private final SensorService service;
     private final Random rnd = new Random();
 
-    /**
-     * Каждую минуту проходим по всем simulate=true сенсорам и
-     * генерим 1–3 измерения с небольшой вероятностью «пика» (WARN/ALERT).
-     */
+
     @Scheduled(fixedDelayString = "${app.sensors.simulate.period-ms:60000}")
     public void tick() {
         List<Sensor> list = sensors.findBySimulateTrue();
         long now = System.currentTimeMillis();
 
         for (Sensor s : list) {
-            int n = 1 + rnd.nextInt(3); // 1..3 измерения за тик
+            int n = 1 + rnd.nextInt(3);
             for (int i = 0; i < n; i++) {
                 var v = valueFor(s.getType());
                 var dto = new MeasurementDto(
                         s.getId(),
-                        s.getType(),                 // тип измерения
-                        v.value,                     // число
-                        v.unit,                      // юнит
-                        now - rnd.nextInt(15_000)    // лёгкий джиттер в прошлое
+                        s.getType(),
+                        v.value,
+                        v.unit,
+                        now - rnd.nextInt(15_000)
                 );
                 try { service.push(dto); } catch (Exception ignored) {}
             }
@@ -48,36 +44,30 @@ public class SensorSimulator {
     }
 
     private Sample valueFor(String type) {
-        // Базовая модель: 90% — норма, 8% — WARN, 2% — ALERT
         double p = rnd.nextDouble();
 
         switch (String.valueOf(type).toUpperCase()) {
             case "RADIATION" -> {
-                // единицы: μSv/h
                 if (p < 0.02)  return new Sample( 1.8 + rnd.nextDouble()*1.2, "μSv/h"); // ALERT ~2.0+
                 if (p < 0.10)  return new Sample( 0.6 + rnd.nextDouble()*0.8, "μSv/h"); // WARN  ~0.5–1.4
                 return new Sample( 0.08 + rnd.nextDouble()*0.30, "μSv/h");               // OK    ~0.08–0.38
             }
             case "SMOKE" -> {
-                // единицы: доля/интенсивность 0..1
                 if (p < 0.02)  return new Sample( 0.90 + rnd.nextDouble()*0.10, null);   // ALERT >0.9
                 if (p < 0.10)  return new Sample( 0.35 + rnd.nextDouble()*0.40, null);   // WARN  ~0.35–0.75
                 return new Sample( 0.02 + rnd.nextDouble()*0.20, null);                  // OK    ~0.02–0.22
             }
             case "AIR_QUALITY" -> {
-                // условные AQI
                 if (p < 0.02)  return new Sample( 220 + rnd.nextDouble()*60, null);      // ALERT >200
                 if (p < 0.10)  return new Sample( 130 + rnd.nextDouble()*60, null);      // WARN  >120
                 return new Sample( 45 + rnd.nextDouble()*60, null);                       // OK
             }
             case "FLOOD" -> {
-                // уровень воды 0..1
                 if (p < 0.02)  return new Sample( 0.92 + rnd.nextDouble()*0.08, null);   // ALERT >0.9
                 if (p < 0.10)  return new Sample( 0.55 + rnd.nextDouble()*0.25, null);   // WARN  >0.5
                 return new Sample( 0.02 + rnd.nextDouble()*0.35, null);                  // OK
             }
             default -> {
-                // неизвестные — просто шум
                 return new Sample( rnd.nextDouble(), null);
             }
         }

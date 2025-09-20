@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import ru.ixlax.hackaton.domain.entity.Sensor;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SensorRepo extends JpaRepository<Sensor, Long> {
@@ -20,4 +21,10 @@ public interface SensorRepo extends JpaRepository<Sensor, Long> {
     List<Sensor> findByBbox(double minLat, double maxLat, double minLng, double maxLng);
 
     List<Sensor> findBySimulateTrue();
+    Optional<Sensor> findByExternalId(String externalId);
+
+    List<Sensor> findByUpdatedAtGreaterThanOrderByUpdatedAtAsc(long since);
+
+    // BBox запрос для публичного API:
+    List<Sensor> findByLatBetweenAndLngBetween(double minLat, double maxLat, double minLng, double maxLng);
 }

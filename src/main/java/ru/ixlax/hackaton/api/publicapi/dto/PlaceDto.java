@@ -1,4 +1,3 @@
-// src/main/java/ru/ixlax/hackaton/api/publicapi/dto/PlaceDto.java
 package ru.ixlax.hackaton.api.publicapi.dto;
 
 import ru.ixlax.hackaton.domain.entity.enums.place.PlaceType;

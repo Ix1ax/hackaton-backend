@@ -1,4 +1,3 @@
-// src/main/java/ru/ixlax/hackaton/domain/entity/Sensor.java
 package ru.ixlax.hackaton.domain.entity;
 
 import jakarta.persistence.*;
@@ -7,25 +6,37 @@ import lombok.Data; import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(indexes = { @Index(columnList="regionCode") })
+@Table(
+        name = "sensor",
+        indexes = {
+                @Index(columnList = "regionCode"),
+                @Index(name = "idx_sensor_updated_at", columnList = "updated_at"),
+                @Index(name = "idx_sensor_external_id", columnList = "external_id")
+        }
+)
 public class Sensor {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String externalId;     // идемпотентность P2P
+    @Column(name = "external_id", unique = true)
+    private String externalId;          // для идемпотентности P2P
 
     private String name;
-    private String type;           // RADIATION|SMOKE|AIR_QUALITY|FLOOD
+
+    // тип оставляем строкой, как у тебя используется
+    private String type;
+
     private double lat;
     private double lng;
     private String regionCode;
 
-    @Column(length = 2000)
-    private String meta;           // произвольное описание
+    private String meta;
 
     private boolean simulate = true;
 
-    @Column(nullable = false)
-    private long updatedAt;        // millis
+    @Column(name = "updated_at")
+    private long updatedAt;             // millis
+
+    @PrePersist @PreUpdate
+    void touch() { this.updatedAt = System.currentTimeMillis(); }
 }

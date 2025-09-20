@@ -17,6 +17,7 @@ services:
       - AI_BASE_URL=https://openrouter.ai/api/v1
       - AI_API_KEY=${AI_API_KEY}
       - AI_MODEL=deepseek/deepseek-chat
+      - SPRING_PROFILES_ACTIVE=${PROFILE}
     volumes:
       - ./data/node-a:/app/data
     networks: [mesh]
@@ -30,6 +31,7 @@ services:
       - AI_BASE_URL=https://openrouter.ai/api/v1
       - AI_API_KEY=${AI_API_KEY}
       - AI_MODEL=deepseek/deepseek-chat
+      - SPRING_PROFILES_ACTIVE=${PROFILE}
     volumes:
       - ./data/node-b:/app/data
     networks: [mesh]
@@ -43,6 +45,7 @@ services:
       - AI_BASE_URL=https://openrouter.ai/api/v1
       - AI_API_KEY=${AI_API_KEY}
       - AI_MODEL=deepseek/deepseek-chat
+      - SPRING_PROFILES_ACTIVE=${PROFILE}
     volumes:
       - ./data/node-c:/app/data
     networks: [mesh]

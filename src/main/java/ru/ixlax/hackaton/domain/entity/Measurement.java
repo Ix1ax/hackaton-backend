@@ -13,7 +13,8 @@ import lombok.NoArgsConstructor;
         @Index(columnList="type")
 })
 public class Measurement {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long sensorId;
@@ -21,12 +22,11 @@ public class Measurement {
 
     private long ts;
 
-    // гео опционально
     private Double lat;
     private Double lng;
 
-    // универсальная модель измерений
     private String type;   // RADIATION/SMOKE/AIR_QUALITY/FLOOD...
-    private Double value;
+    @Column(name = "val")          // <-- БЫЛО: private double value;
+    private double value;
     private String unit;   // μSv/h, %, AQI, —
 }

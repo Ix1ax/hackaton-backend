@@ -29,9 +29,9 @@ public class AiDigestJob {
 
     // раз в минуту
     @Scheduled(fixedDelay = 60_000)
-    public void run(){
+    public void run() {
         long now = System.currentTimeMillis();
-        long since = now - 10*60_000;
+        long since = now - 10 * 60_000;
 
         List<Sensor> all = sensors.findAll();
         Map<String, List<Sensor>> byRegion = all.stream()
@@ -43,16 +43,15 @@ public class AiDigestJob {
                     measurements.countBySensorIdInAndTsGreaterThan(
                             list.stream().map(Sensor::getId).toList(), since);
 
-            // соберём короткий контекст в JSON-строку
             StringBuilder ctx = new StringBuilder();
             ctx.append("{\"region\":\"").append(region).append("\",")
                     .append("\"windowMin\":10,")
                     .append("\"sensorsTotal\":").append(total).append(",")
                     .append("\"measurements10m\":").append(totalMsmt).append(",")
                     .append("\"sensors\":[");
-            for (int i=0;i<Math.min(10, list.size());i++){
+            for (int i = 0; i < Math.min(10, list.size()); i++) {
                 var s = list.get(i);
-                if (i>0) ctx.append(',');
+                if (i > 0) ctx.append(',');
                 ctx.append("{\"id\":").append(s.getId())
                         .append(",\"name\":\"").append(s.getName()).append('"')
                         .append(",\"type\":\"").append(s.getType()).append('"')
@@ -61,17 +60,20 @@ public class AiDigestJob {
             }
             ctx.append("]}");
 
-            String system = "Ты пишешь краткие оперативные сводки для диспетчеров ЧС. Отвечай СУХО и по делу на русском.";
-            String user = """
-Сгенерируй абзац (1–3 предложения) сводки за последние 10 минут по региону из контекста. 
-Подчеркни, есть ли тревожные сигналы/аномалии, если данных мало — так и скажи. Без HTML, только текст.
-            """;
+            final String systemPrompt =
+                    "Ты пишешь краткие оперативные сводки для диспетчеров ЧС. " +
+                            "Отвечай СУХО и по делу на русском, без HTML.";
+            final String userPrompt = """
+Сгенерируй абзац (1–3 предложения) сводки за последние 10 минут по региону из контекста.
+Подчеркни, есть ли тревожные сигналы/аномалии. Если данных мало — так и скажи. Без HTML.
+""";
 
-            String bodyAi = ai.chat(system, "Контекст: "+ctx + "\n\n"+ user)
-                    .blockOptional().orElse("");
+            String bodyAi = ai.chatWithContext(systemPrompt, userPrompt, ctx.toString())
+                    .blockOptional()
+                    .orElse("");
 
-            String title = "AI-сводка датчиков ("+region+"): измерений за 10м = " + totalMsmt;
-            if (bodyAi==null || bodyAi.isBlank()) {
+            String title = "AI-сводка датчиков (" + region + "): измерений за 10м = " + totalMsmt;
+            if (bodyAi.isBlank()) {
                 bodyAi = "Автосводка за 10 минут на " + Instant.ofEpochMilli(now) + ". Данных немного.";
             }
 
@@ -83,9 +85,11 @@ public class AiDigestJob {
             n.setSource("AI");
             news.save(n);
 
-            var dto = new NewsDto(n.getId(), n.getTs(), n.getTitle(), n.getBody(),
+            var dto = new NewsDto(
+                    n.getId(), n.getTs(), n.getTitle(), n.getBody(),
                     n.getRegionCode(), n.getSource(), n.getIncidentExternalId(),
-                    n.getPlaceId(), n.getLat(), n.getLng(), n.getStatus());
+                    n.getPlaceId(), n.getLat(), n.getLng(), n.getStatus()
+            );
 
             sse.publishNews(dto);
             p2p.broadcastNews(List.of(dto));

@@ -16,7 +16,6 @@ public class SensorsBootstrap implements CommandLineRunner {
     @Override public void run(String... args) {
         if (sensors.count() > 0) return;
 
-        // простые центры регионов (условные)
         record C(String code, double lat, double lng){}
 
         var centers = List.of(
@@ -29,7 +28,7 @@ public class SensorsBootstrap implements CommandLineRunner {
 
         long id = 1;
         for (var c : centers) {
-            for (int i=0; i<6; i++) {        // по 6*4=24 сенсора на регион
+            for (int i=0; i<6; i++) {
                 for (String t : types) {
                     var s = new Sensor();
                     s.setName(t + " #" + (id++));

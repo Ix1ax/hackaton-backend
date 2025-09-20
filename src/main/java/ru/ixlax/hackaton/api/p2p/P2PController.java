@@ -5,47 +5,51 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.ixlax.hackaton.api.p2p.dto.EventEnvelope;
-import ru.ixlax.hackaton.api.publicapi.dto.IncidentDto;
-import ru.ixlax.hackaton.api.publicapi.dto.NewsDto;
-import ru.ixlax.hackaton.domain.entity.Incident;
-import ru.ixlax.hackaton.domain.entity.News;
-import ru.ixlax.hackaton.domain.repository.IncidentRepo;
-import ru.ixlax.hackaton.domain.repository.NewsRepo;
+import ru.ixlax.hackaton.api.publicapi.dto.*;
+import ru.ixlax.hackaton.domain.entity.*;
+import ru.ixlax.hackaton.domain.repository.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/p2p")
 public class P2PController {
     private final IncidentRepo incidentRepo;
+    private final PlaceRepo placeRepo;
+    private final SensorRepo sensorRepo;
     private final NewsRepo newsRepo;
     private final ObjectMapper mapper;
 
     @PostMapping("/events")
     public Map<String,Object> accept(@RequestBody List<EventEnvelope> batch){
         int ok=0, bad=0;
-        for (var env : batch) {
-            switch (String.valueOf(env.type())) {
-                case "INCIDENT" -> {
-                    var dtos = mapper.convertValue(env.payload(), new TypeReference<List<IncidentDto>>(){});
-                    for (var d : dtos) { upsertIncident(d); ok++; }
+        for (var env : batch){
+            try {
+                switch (String.valueOf(env.type())) {
+                    case "INCIDENT" -> {
+                        var dtos = mapper.convertValue(env.payload(), new TypeReference<List<IncidentDto>>(){});
+                        for (var dto : dtos){ upsertIncident(dto); ok++; }
+                    }
+                    case "NEWS" -> {
+                        var dtos = mapper.convertValue(env.payload(), new TypeReference<List<NewsDto>>(){});
+                        for (var dto : dtos){ upsertNews(dto); ok++; }
+                    }
+                    case "PLACE" -> {
+                        var dtos = mapper.convertValue(env.payload(), new TypeReference<List<PlaceDto>>(){});
+                        for (var dto : dtos){ upsertPlace(dto); ok++; }
+                    }
+                    case "SENSOR" -> {
+                        var dtos = mapper.convertValue(env.payload(), new TypeReference<List<SensorDto>>(){});
+                        for (var dto : dtos){ upsertSensor(dto); ok++; }
+                    }
+                    default -> bad++;
                 }
-                case "NEWS" -> {
-                    var dtos = mapper.convertValue(env.payload(), new TypeReference<List<NewsDto>>(){});
-                    for (var d : dtos) { upsertNews(d); ok++; }
-                }
-                default -> bad++;
+            } catch (Exception e) {
+                bad++;
             }
         }
         return Map.of("accepted", ok, "rejected", bad);
-    }
-
-    @GetMapping("/sync/incidents")
-    public List<IncidentDto> sync(@RequestParam long since){
-        return incidentRepo.findByTsGreaterThanOrderByTsAsc(since)
-                .stream().map(this::toDto).toList();
     }
 
     private void upsertIncident(IncidentDto d){
@@ -61,6 +65,7 @@ public class P2PController {
         e.setRegionCode(d.regionCode()); e.setOriginRegion(d.originRegion());
         incidentRepo.save(e);
     }
+
     private void upsertNews(NewsDto d){
         var n = newsRepo.findFirstByTsAndSourceAndTitle(d.ts(), d.source(), d.title())
                 .orElseGet(News::new);
@@ -75,10 +80,30 @@ public class P2PController {
         newsRepo.save(n);
     }
 
-    private IncidentDto toDto(Incident e){
-        return new IncidentDto(e.getId(), e.getExternalId(), e.getObjectId(),
-                e.getLevel(), e.getKind(), e.getReason(),
-                e.getLat(), e.getLng(), e.getTs(), e.getStatus(),
-                e.getRegionCode(), e.getOriginRegion());
+    private void upsertPlace(PlaceDto d){
+        var p = placeRepo.findByExternalId(d.externalId()).orElseGet(Place::new);
+        if (p.getExternalId()==null) p.setExternalId(d.externalId());
+        if (p.getUpdatedAt()!=0 && p.getUpdatedAt()>d.updatedAt()) return; // берём самый свежий
+        p.setType(d.type());
+        p.setName(d.name());
+        p.setAddress(d.address());
+        p.setLat(d.lat()); p.setLng(d.lng());
+        p.setCapacity(d.capacity());
+        p.setRegionCode(d.regionCode());
+        p.setUpdatedAt(d.updatedAt());
+        placeRepo.save(p);
+    }
+
+    private void upsertSensor(SensorDto d){
+        var s = sensorRepo.findByExternalId(d.externalId()).orElseGet(Sensor::new);
+        if (s.getExternalId()==null) s.setExternalId(d.externalId());
+        if (s.getUpdatedAt()!=0 && s.getUpdatedAt()>d.updatedAt()) return;
+        s.setName(d.name());
+        s.setType(d.type());
+        s.setLat(d.lat()); s.setLng(d.lng());
+        s.setRegionCode(d.regionCode());
+        s.setMeta(d.meta());
+        s.setUpdatedAt(d.updatedAt());
+        sensorRepo.save(s);
     }
 }

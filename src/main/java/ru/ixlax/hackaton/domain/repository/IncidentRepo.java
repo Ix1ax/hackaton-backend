@@ -1,5 +1,7 @@
 package ru.ixlax.hackaton.domain.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -11,15 +13,12 @@ import java.util.Optional;
 @Repository
 public interface IncidentRepo extends JpaRepository<Incident, Long> {
 
-    // для SyncOnStartup (твой билд падал из-за отсутствия этого метода)
     List<Incident> findTop200ByOrderByTsDesc();
 
-    // для /p2p/sync/incidents
     List<Incident> findByTsGreaterThanOrderByTsAsc(long since);
 
     Optional<Incident> findByExternalId(String externalId);
 
-    // для /api/public/incidents (bbox + since)
     @Query("""
            select i from Incident i
            where i.ts > :since
@@ -29,5 +28,8 @@ public interface IncidentRepo extends JpaRepository<Incident, Long> {
            """)
     List<Incident> findByBboxSince(long since,
                                    double minLat, double maxLat,
-                                   double minLng, double maxLng);
+                                   double minLng, double maxLng,
+                                   Pageable pageable);
+
+    Page<Incident> findByTsGreaterThanEqualAndLatBetweenAndLngBetween(long s, double minLat, double maxLat, double minLng, double maxLng, Pageable pg);
 }

@@ -1,4 +1,3 @@
-// src/main/java/ru/ixlax/hackaton/domain/entity/Place.java
 package ru.ixlax.hackaton.domain.entity;
 
 import jakarta.persistence.*;
@@ -8,16 +7,23 @@ import ru.ixlax.hackaton.domain.entity.enums.place.PlaceType;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(indexes=@Index(columnList="regionCode"))
+@Table(
+        name = "place",
+        indexes = {
+                @Index(columnList = "regionCode"),
+                @Index(name = "idx_place_updated_at", columnList = "updated_at"),
+                @Index(name = "idx_place_external_id", columnList = "external_id")
+        }
+)
 public class Place {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "external_id", unique = true)
+    private String externalId;        // для P2P
+
     @Enumerated(EnumType.STRING)
     private PlaceType type;
-
-    @Column(unique = true)
-    private String externalId;     // идемпотентность P2P
 
     private String name;
     private String address;
@@ -26,6 +32,9 @@ public class Place {
     private Integer capacity;
     private String regionCode;
 
-    @Column(nullable = false)
-    private long updatedAt;        // millis: для конфликтов и /sync
+    @Column(name = "updated_at")
+    private long updatedAt;
+
+    @PrePersist @PreUpdate
+    void touch() { this.updatedAt = System.currentTimeMillis(); }
 }

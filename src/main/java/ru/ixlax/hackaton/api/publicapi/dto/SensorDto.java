@@ -1,4 +1,3 @@
-// src/main/java/ru/ixlax/hackaton/api/publicapi/dto/SensorDto.java
 package ru.ixlax.hackaton.api.publicapi.dto;
 
 public record SensorDto(
@@ -10,6 +9,5 @@ public record SensorDto(
         double lng,
         String regionCode,
         String meta,
-        boolean simulate,
         long updatedAt
 ) {}

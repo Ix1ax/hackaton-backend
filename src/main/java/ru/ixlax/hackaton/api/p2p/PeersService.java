@@ -16,8 +16,8 @@ public class PeersService {
 
     private final WebClient web = WebClient.builder().build();
 
-    @Value("${app.node.peers:}") private String peersCsv;        // статичный fallback
-    @Value("${app.node.registry-url:}") private String registry;  // опционально: http://gateway/api/peers
+    @Value("${app.node.peers:}") private String peersCsv;
+    @Value("${app.node.registry-url:}") private String registry;
 
     private final AtomicReference<List<String>> peers = new AtomicReference<>(List.of());
 
@@ -29,7 +29,6 @@ public class PeersService {
 
     @Scheduled(fixedDelay = 5000)
     public void refresh() {
-        // 1) если задан registry — тянем из него (JSON: {"peers":["http://node_a:8080",...]} )
         if (registry != null && !registry.isBlank()) {
             try {
                 var resp = web.get().uri(registry).retrieve().bodyToMono(Registry.class).block();
@@ -39,7 +38,6 @@ public class PeersService {
                 }
             } catch (Exception ignored) {}
         }
-        // 2) иначе — просто разбираем локальный CSV (на случай изменений configMap/ENV)
         peers.set(parseCsv(peersCsv));
     }
 

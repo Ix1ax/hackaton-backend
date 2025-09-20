@@ -5,5 +5,5 @@ public record MeasurementDto(
         String type,
         double value,
         String unit,
-        Long ts                   // опционально; если null — возьмём now()
+        Long ts
 ) {}
