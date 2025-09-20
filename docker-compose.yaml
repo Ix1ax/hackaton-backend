@@ -1,33 +1,52 @@
 services:
-  node_a:
-    build: .
-    container_name: node_a
-    environment:
-      - NODE_ID=nodeA
-      - SPRING_PROFILES_ACTIVE=default
-    ports:
-      - "8081:8080"
+  gateway:
+    image: nginx:alpine
     volumes:
-      - ./data/nodeA:/app/data
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+    depends_on: [node-a, node-b, node-c]
+    networks: [mesh]
 
-  node_b:
+  node-a:
     build: .
-    container_name: node_b
     environment:
-      - NODE_ID=nodeB
-      - SPRING_PROFILES_ACTIVE=default
-    ports:
-      - "8082:8080"
+      - NODE_ID=node-a
+      - REGION_CODE=RU-MOW
+      - PEERS=http://node-b:8080,http://node-c:8080
+      - AI_BASE_URL=https://openrouter.ai/api/v1
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_MODEL=deepseek/deepseek-chat
     volumes:
-      - ./data/nodeB:/app/data
+      - ./data/node-a:/app/data
+    networks: [mesh]
 
-  node_c:
+  node-b:
     build: .
-    container_name: node_c
     environment:
-      - NODE_ID=nodeC
-      - SPRING_PROFILES_ACTIVE=default
-    ports:
-      - "8083:8080"
+      - NODE_ID=node-b
+      - REGION_CODE=RU-TVE
+      - PEERS=http://node-a:8080,http://node-c:8080
+      - AI_BASE_URL=https://openrouter.ai/api/v1
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_MODEL=deepseek/deepseek-chat
     volumes:
-      - ./data/nodeC:/app/data
+      - ./data/node-b:/app/data
+    networks: [mesh]
+
+  node-c:
+    build: .
+    environment:
+      - NODE_ID=node-c
+      - REGION_CODE=RU-SMO
+      - PEERS=http://node-a:8080,http://node-b:8080
+      - AI_BASE_URL=https://openrouter.ai/api/v1
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_MODEL=deepseek/deepseek-chat
+    volumes:
+      - ./data/node-c:/app/data
+    networks: [mesh]
+
+networks:
+  mesh:
+    driver: bridge

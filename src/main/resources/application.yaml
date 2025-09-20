@@ -1,16 +1,30 @@
 spring:
   datasource:
-    url: jdbc:h2:file:./data/${NODE_ID};MODE=PostgreSQL
+    url: jdbc:h2:file:./data/${NODE_ID:node-local};MODE=PostgreSQL
     driver-class-name: org.h2.Driver
     username: sa
     password:
   jpa:
-    hibernate:
-      ddl-auto: update
+    hibernate.ddl-auto: update
     show-sql: false
 
 server:
   port: 8080
 
 app:
-  node-id: ${NODE_ID:node-default}
+  node:
+    id: ${NODE_ID:node-local}
+    region: ${REGION_CODE:RU-MOW}
+    key: local-secret
+    peers: ${PEERS:}
+  # registry-url: http://gateway/api/peers
+
+cors:
+  origins: "*"
+
+ai:
+  base-url: ${AI_BASE_URL:https://openrouter.ai/api/v1}
+  api-key: ${AI_API_KEY:put-real-key-here}
+  model: ${AI_MODEL:deepseek/deepseek-chat}
+  timeout-ms: ${AI_TIMEOUT_MS:15000}
+  temperature: ${AI_TEMPERATURE:0.2}
