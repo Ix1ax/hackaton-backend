@@ -176,12 +176,14 @@ public class SensorService {
                 raiseIncident(s, m, eval.levelForIncident(), eval.kindForIncident());
             } else {
                 var manual = new SensorStatusDto(s.getId(), s.getType(), SensorHealth.WARN,
-                        "Порог превышен — требуется подтверждение оператора", s.getLat(), s.getLng(), m.getTs());
+                        "Порог превышен — требуется подтверждение оператора", s.getLat(), s.getLng(), m.getTs(), s.getName(),
+                        s.getRegionCode(),
+                        true);
                 sse.publishSensor(manual);
             }
         }
 
-        return new SensorStatusDto(s.getId(), s.getType(), eval.health(), eval.message(), s.getLat(), s.getLng(), m.getTs());
+        return new SensorStatusDto(s.getId(), s.getType(), eval.health(), eval.message(), s.getLat(), s.getLng(), m.getTs(), s.getName(), s.getRegionCode(), true);
     }
 
     private void raiseIncident(Sensor s, Measurement m, IncidentLevel lvl, IncidentKind kind){

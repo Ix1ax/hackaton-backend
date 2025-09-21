@@ -25,6 +25,9 @@ alerts:
     to: ${ALERT_EMAIL_TO:}
 
 app:
+  incidents:
+    ttl-check-ms: 1000     # как было — раз в секунду проверяем истечение
+    default-ttl-sec: 40    # НОВОЕ: дефолтный TTL для новых инцидентов
   node:
     id: ${NODE_ID:node-local}
     region: ${REGION_CODE:RU-MOW}

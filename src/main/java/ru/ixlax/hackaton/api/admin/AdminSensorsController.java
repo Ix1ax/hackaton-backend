@@ -46,7 +46,11 @@ public class AdminSensorsController {
                     "Registered",
                     dto.lat(),
                     dto.lng(),
-                    System.currentTimeMillis()
+                    System.currentTimeMillis(),
+                    dto.name(),
+                    dto.region(),
+                    true
+
             ));
         } catch (Exception ignore) {}
 

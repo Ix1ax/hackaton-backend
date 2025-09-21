@@ -7,5 +7,8 @@ public record SensorStatusDto(
         String message,
         Double lat,
         Double lng,
-        long ts
+        long ts,
+        String name,
+        String regionCode,
+        boolean simulate
 ) {}

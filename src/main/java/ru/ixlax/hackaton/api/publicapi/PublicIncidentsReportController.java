@@ -1,4 +1,4 @@
-package ru.ixlax.hackaton.api.admin;
+package ru.ixlax.hackaton.api.publicapi;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,8 +20,10 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/incidents")
-public class AdminIncidentsController {
+@RequestMapping("/api/public/incidents")
+@CrossOrigin
+public class PublicIncidentsReportController {
+
     private final IncidentRepo incidentRepo;
     private final NewsRepo newsRepo;
     private final SseHub sse;
@@ -31,17 +33,45 @@ public class AdminIncidentsController {
     @Value("${app.incidents.default-ttl-sec:40}")
     private int defaultTtlSec;
 
-    @PostMapping("/spawn")
-    public IncidentDto spawn(@RequestParam double lat, @RequestParam double lng,
-                             @RequestParam(defaultValue = "HIGH")    IncidentLevel level,
-                             @RequestParam(defaultValue = "UNKNOWN") IncidentKind  kind,
-                             @RequestParam(defaultValue = "manual")  String reason,
-                             @RequestParam(defaultValue = "RU-MOW")  String region,
-                             @RequestParam(required = false) Integer ttlSec) {
+    public record ReportPayload(
+            Double lat,
+            Double lng,
+            IncidentLevel level,
+            IncidentKind kind,
+            String reason,
+            String region,
+            Integer ttlSec
+    ) {}
 
-        int ttl = (ttlSec == null) ? defaultTtlSec : Math.max(1, ttlSec);
+    @PostMapping(value = "/report", consumes = "application/json")
+    public IncidentDto reportJson(@RequestBody ReportPayload in) {
+        final double lat = in.lat() == null ? 0 : in.lat();
+        final double lng = in.lng() == null ? 0 : in.lng();
+        final IncidentLevel level = in.level() == null ? IncidentLevel.LOW : in.level();
+        final IncidentKind kind = in.kind() == null ? IncidentKind.UNKNOWN : in.kind();
+        final String reason = in.reason() == null || in.reason().isBlank() ? "user-report" : in.reason();
+        final String region = in.region() == null || in.region().isBlank() ? "RU-MOW" : in.region();
+        final int ttl = in.ttlSec() == null ? defaultTtlSec : Math.max(1, in.ttlSec());
 
-        var e = new Incident();
+        return createAndPublish(lat, lng, level, kind, reason, region, ttl);
+    }
+
+    @PostMapping("/report")
+    public IncidentDto reportParams(@RequestParam double lat,
+                                    @RequestParam double lng,
+                                    @RequestParam(defaultValue = "LOW") IncidentLevel level,
+                                    @RequestParam(defaultValue = "UNKNOWN") IncidentKind kind,
+                                    @RequestParam(defaultValue = "user-report") String reason,
+                                    @RequestParam(defaultValue = "RU-MOW") String region,
+                                    @RequestParam(required = false) Integer ttlSec) {
+        final int ttl = ttlSec == null ? defaultTtlSec : Math.max(1, ttlSec);
+        return createAndPublish(lat, lng, level, kind, reason, region, ttl);
+    }
+
+    private IncidentDto createAndPublish(double lat, double lng,
+                                         IncidentLevel level, IncidentKind kind,
+                                         String reason, String region, int ttlSec) {
+        Incident e = new Incident();
         e.setExternalId(UUID.randomUUID().toString());
         e.setLevel(level);
         e.setKind(kind);
@@ -51,28 +81,26 @@ public class AdminIncidentsController {
         e.setTs(System.currentTimeMillis());
         e.setRegionCode(region);
         e.setOriginRegion(region);
-        e.setTtlSec(ttl); // авто-закрытие через TTL
+        e.setTtlSec(ttlSec);
 
         final Incident saved = incidentRepo.save(e);
-        var dto = toDto(saved);
+        final IncidentDto dto = toDto(saved);
 
-        // авто-новость под инцидент
-        var n = new News();
+        News n = new News();
         n.setTs(saved.getTs());
-        n.setTitle("Обнаружена аномалия: " + saved.getKind());
-        n.setBody("Уровень: " + saved.getLevel() + ". Причина: " + saved.getReason());
+        n.setTitle("Поступило сообщение об аномалии: " + saved.getKind());
+        n.setBody("Уровень: " + saved.getLevel() + ". Источник: dispetcher. Причина: " + saved.getReason());
         n.setRegionCode(saved.getRegionCode());
-        n.setSource("DISPATCHER");
+        n.setSource("USER");
         n.setIncidentExternalId(saved.getExternalId());
         n.setLat(saved.getLat());
         n.setLng(saved.getLng());
         n = newsRepo.save(n);
 
-        // realtime публикации
         sse.publish(dto);
         p2p.broadcastIncidents(List.of(dto));
 
-        var newsDto = new NewsDto(
+        NewsDto newsDto = new NewsDto(
                 n.getId(), n.getTs(), n.getTitle(), n.getBody(),
                 n.getRegionCode(), n.getSource(), n.getIncidentExternalId(),
                 n.getPlaceId(), n.getLat(), n.getLng(), n.getStatus()
@@ -80,7 +108,6 @@ public class AdminIncidentsController {
         sse.publishNews(newsDto);
         p2p.broadcastNews(List.of(newsDto));
 
-        // подбор камеры поблизости
         final String extId = saved.getExternalId();
         final double latVal = saved.getLat();
         final double lngVal = saved.getLng();
@@ -91,13 +118,7 @@ public class AdminIncidentsController {
         return dto;
     }
 
-    public record StatusDto(ru.ixlax.hackaton.domain.entity.enums.incident.IncidentStatus status) {}
-    @PatchMapping("/{id}/status")
-    public void setStatus(@PathVariable Long id, @RequestBody StatusDto body) {
-        incidentRepo.findById(id).ifPresent(e -> { e.setStatus(body.status()); incidentRepo.save(e); });
-    }
-
-    private IncidentDto toDto(Incident e) {
+    private static IncidentDto toDto(Incident e) {
         return new IncidentDto(e.getId(), e.getExternalId(), e.getObjectId(),
                 e.getLevel(), e.getKind(), e.getReason(),
                 e.getLat(), e.getLng(), e.getTs(), e.getStatus(),
