@@ -35,7 +35,6 @@ public class VisionAnalyzerGreenRule implements VisionAnalyzer {
             int w = img.getWidth(), h = img.getHeight();
             long total = 0, greenish = 0;
 
-            // берём каждый 2-й пиксель (экономим CPU)
             for (int y = 0; y < h; y += 2) {
                 for (int x = 0; x < w; x += 2) {
                     int rgb = img.getRGB(x, y);

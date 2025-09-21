@@ -51,12 +51,11 @@ public class AdminIncidentsWsController {
         String reg = in.region() == null ? "RU-MOW" : in.region();
         e.setRegionCode(reg);
         e.setOriginRegion(reg);
-        e.setTtlSec(ttl); // авто-закрытие через TTL
+        e.setTtlSec(ttl);
 
         final Incident saved = incidentRepo.save(e);
         IncidentDto dto = toDto(saved);
 
-        // авто-новость
         News n = new News();
         n.setTs(saved.getTs());
         n.setTitle("Обнаружена аномалия: " + saved.getKind());
@@ -68,7 +67,6 @@ public class AdminIncidentsWsController {
         n.setLng(saved.getLng());
         n = newsRepo.save(n);
 
-        // realtime публикации
         sse.publish(dto);
         p2p.broadcastIncidents(List.of(dto));
 
@@ -80,7 +78,6 @@ public class AdminIncidentsWsController {
         sse.publishNews(newsDto);
         p2p.broadcastNews(List.of(newsDto));
 
-        // привязка камеры
         final String extId = saved.getExternalId();
         final double latVal = saved.getLat();
         final double lngVal = saved.getLng();
@@ -96,7 +93,7 @@ public class AdminIncidentsWsController {
         incidentRepo.findById(id).ifPresent(e -> {
             e.setStatus(body.status());
             incidentRepo.save(e);
-            sse.publish(toDto(e)); // обновим всем
+            sse.publish(toDto(e));
         });
     }
 

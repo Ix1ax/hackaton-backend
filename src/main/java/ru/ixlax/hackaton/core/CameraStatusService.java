@@ -15,7 +15,6 @@ public class CameraStatusService {
     private final SimpMessagingTemplate ws;
     private final Map<Long, Boolean> lastOnline = new ConcurrentHashMap<>();
 
-    /** Публикует событие только при смене статуса (чтоб не флудить). */
     public void publish(CameraStatusDto dto) {
         Boolean prev = lastOnline.put(dto.id(), dto.online());
         if (prev == null || prev.booleanValue() != dto.online()) {

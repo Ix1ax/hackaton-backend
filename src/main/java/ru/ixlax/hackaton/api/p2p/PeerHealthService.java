@@ -24,10 +24,6 @@ public class PeerHealthService {
     private String peersRaw;
     private final RestClient http = RestClient.create();
 
-    /**
-     * DTO для /ping; именно этот тип ожидает PublicController:
-     * return type: PeerHealthService.Status
-     */
     public record Status(
             String nodeId,
             String regionCode,
@@ -37,8 +33,8 @@ public class PeerHealthService {
     ) {}
 
     public Status selfPing() {
-        List<String> peers = parsePeers(peersRaw);        // никогда не null
-        String ip = findMyIpOrNull();                     // может быть null — это нормально для JSON
+        List<String> peers = parsePeers(peersRaw);
+        String ip = findMyIpOrNull();
 
         return new Status(
                 (nodeId == null || nodeId.isBlank()) ? "unknown" : nodeId,
@@ -70,7 +66,6 @@ public class PeerHealthService {
 
     public List<Status> snapshot() {
         List<Status> out = new ArrayList<>();
-        // сначала мы сами
         out.add(selfPing());
 
         for (String base : parsePeers(peersRaw)) {
@@ -80,7 +75,7 @@ public class PeerHealthService {
                 if (st != null) out.add(st);
             } catch (Exception e) {
                 out.add(new Status(
-                        base,            // nodeId как адрес узла
+                        base,
                         "UNKNOWN",
                         null,
                         List.of(),

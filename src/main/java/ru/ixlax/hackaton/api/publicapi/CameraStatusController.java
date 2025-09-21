@@ -59,7 +59,6 @@ public class CameraStatusController {
                         online = Instant.now().minusSeconds(maxAgeSec).isBefore(last);
                         if (!online) reason = "stale";
                     } else {
-                        // нет заголовка Last-Modified — считаем онлайн (но без lastSeenTs)
                         online = true;
                     }
                 } else {

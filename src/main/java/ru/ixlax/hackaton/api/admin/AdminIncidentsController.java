@@ -51,12 +51,11 @@ public class AdminIncidentsController {
         e.setTs(System.currentTimeMillis());
         e.setRegionCode(region);
         e.setOriginRegion(region);
-        e.setTtlSec(ttl); // авто-закрытие через TTL
+        e.setTtlSec(ttl);
 
         final Incident saved = incidentRepo.save(e);
         var dto = toDto(saved);
 
-        // авто-новость под инцидент
         var n = new News();
         n.setTs(saved.getTs());
         n.setTitle("Обнаружена аномалия: " + saved.getKind());
@@ -68,7 +67,6 @@ public class AdminIncidentsController {
         n.setLng(saved.getLng());
         n = newsRepo.save(n);
 
-        // realtime публикации
         sse.publish(dto);
         p2p.broadcastIncidents(List.of(dto));
 
@@ -80,7 +78,6 @@ public class AdminIncidentsController {
         sse.publishNews(newsDto);
         p2p.broadcastNews(List.of(newsDto));
 
-        // подбор камеры поблизости
         final String extId = saved.getExternalId();
         final double latVal = saved.getLat();
         final double lngVal = saved.getLng();

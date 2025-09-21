@@ -13,22 +13,19 @@ public class News {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private long ts;                   // когда создана
-    private String title;              // короткий заголовок
+    private long ts;
+    private String title;
     @Column(length = 4000)
-    private String body;               // текст
+    private String body;
 
-    private String regionCode;         // для фильтрации ленты по региону
-    private String source;             // SENSOR | DISPATCHER
+    private String regionCode;
+    private String source;
 
-    // привязки
-    private String incidentExternalId; // связанный инцидент (строка, чтобы одинаково на всех узлах)
-    private Long placeId;              // опционально: ссылка на Place
+    private String incidentExternalId;
+    private Long placeId;
 
-    // чтобы при клике прыгать на карту, даже если нет инцидента
     private Double lat;
     private Double lng;
 
-    // статус публикации
-    private String status = "PUBLISHED"; // PUBLISHED | HIDDEN
+    private String status = "PUBLISHED";
 }

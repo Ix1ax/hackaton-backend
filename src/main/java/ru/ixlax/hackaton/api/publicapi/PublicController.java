@@ -83,7 +83,6 @@ public class PublicController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<IncidentDto>> stream() { return sse.stream(); }
 
-    // маппинги
     private IncidentDto toDto(Incident e) {
         return new IncidentDto(e.getId(), e.getExternalId(), e.getObjectId(),
                 e.getLevel(), e.getKind(), e.getReason(),

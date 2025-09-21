@@ -20,7 +20,7 @@ public class Place {
     private Long id;
 
     @Column(name = "external_id", unique = true)
-    private String externalId;        // для P2P
+    private String externalId;
 
     @Enumerated(EnumType.STRING)
     private PlaceType type;

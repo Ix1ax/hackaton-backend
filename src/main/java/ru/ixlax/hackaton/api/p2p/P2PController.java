@@ -25,7 +25,6 @@ public class P2PController {
     private final ObjectMapper mapper;
     private final CameraRepo cameraRepo;
 
-    // ⬇️ ДОБАВЛЕНО: локальная публикация событий для WS через SSE
     private final SseHub sse;
 
     @PostMapping("/events")
@@ -76,16 +75,12 @@ public class P2PController {
         return Map.of("accepted", ok, "rejected", bad);
     }
 
-    /**
-     * @return IncidentDto если запись новая/обновилась и её можно ретранслировать по локальному SSE; иначе null (старее и проигнорирована).
-     */
     private IncidentDto upsertIncident(IncidentDto d){
         try {
             var e = incidentRepo.findByExternalId(d.externalId()).orElseGet(Incident::new);
             boolean isNew = (e.getExternalId() == null);
             if (isNew) e.setExternalId(d.externalId());
 
-            // last-write-wins по ts: если существующая запись новее — игнорируем
             if (!isNew && e.getTs() != 0 && e.getTs() > d.ts()) return null;
 
             e.setObjectId(d.objectId());
@@ -128,10 +123,6 @@ public class P2PController {
         }
     }
 
-    /**
-     * @return NewsDto для ретрансляции по SSE; никогда не возвращает null (даже если запись существовала – мы её синхронизировали).
-     * Если хочешь подавлять «пустые» повторные публикации — можно сравнивать поля и возвращать null при полном совпадении.
-     */
     private NewsDto upsertNews(NewsDto d){
         var n = newsRepo.findFirstByTsAndSourceAndTitle(d.ts(), d.source(), d.title())
                 .orElseGet(News::new);
@@ -156,7 +147,7 @@ public class P2PController {
     private void upsertPlace(PlaceDto d){
         var p = placeRepo.findByExternalId(d.externalId()).orElseGet(Place::new);
         if (p.getExternalId()==null) p.setExternalId(d.externalId());
-        if (p.getUpdatedAt()!=0 && p.getUpdatedAt()>d.updatedAt()) return; // берём самый свежий
+        if (p.getUpdatedAt()!=0 && p.getUpdatedAt()>d.updatedAt()) return;
         p.setType(d.type());
         p.setName(d.name());
         p.setAddress(d.address());

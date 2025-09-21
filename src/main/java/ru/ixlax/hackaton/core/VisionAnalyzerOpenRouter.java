@@ -34,7 +34,6 @@ public class VisionAnalyzerOpenRouter implements VisionAnalyzer {
             if (apiKey == null || apiKey.isBlank()) return Optional.empty();
             WebClient web = WebClient.builder().build();
 
-            // 1) выбираем URL кадра
             String snap = explicitSnapshotUrl;
             if (snap == null || snap.isBlank()) {
                 if (c.getSnapshotUrl() != null && !c.getSnapshotUrl().isBlank()) {
@@ -46,7 +45,6 @@ public class VisionAnalyzerOpenRouter implements VisionAnalyzer {
                 }
             }
 
-            // 2) проверяем что кадр существует и свежий
             ResponseEntity<Void> head = web.head().uri(snap).retrieve().toBodilessEntity().block();
             if (head == null || !head.getStatusCode().is2xxSuccessful()) return Optional.empty();
 
@@ -56,17 +54,14 @@ public class VisionAnalyzerOpenRouter implements VisionAnalyzer {
                 if (Instant.now().minusSeconds(maxAgeSec).isAfter(last)) return Optional.empty();
             }
 
-            // 3) базовый промпт
             String basePrompt = """
 Посмотри на снимок. Если видишь дым, пламя, затопление, ДТП, массовое скопление людей, оружие или неестественные цвета кожи — верни КОРОТКУЮ фразу-при原因 на русском (без пояснений).
 Если всё нормально — верни ровно "OK".
 """.trim();
             String prompt = (userPrompt == null || userPrompt.isBlank()) ? basePrompt : (basePrompt + "\n" + userPrompt);
 
-            // 4) модель
             String model = defaultModel;
 
-            // 5) запрос
             String body = """
 {
   "model": "%s",
@@ -92,12 +87,9 @@ public class VisionAnalyzerOpenRouter implements VisionAnalyzer {
 
             if (resp == null) return Optional.empty();
 
-            // очень простой парс: достаём content
             String lower = resp.toLowerCase();
-            // если модель где-то вернула "ok" — игнор
             if (lower.contains("\"ok\"") || lower.matches("(?s).*\\bok\\b.*")) return Optional.empty();
 
-            // иначе вернём сырой текст ответа (фронту/джобе пригодится для regex)
             return Optional.of(resp);
         } catch (Exception e) {
             return Optional.empty();

@@ -19,11 +19,10 @@ public class Sensor {
     private Long id;
 
     @Column(name = "external_id", unique = true)
-    private String externalId;          // для идемпотентности P2P
+    private String externalId;
 
     private String name;
 
-    // тип оставляем строкой, как у тебя используется
     private String type;
 
     private double lat;
@@ -35,7 +34,7 @@ public class Sensor {
     private boolean simulate = true;
 
     @Column(name = "updated_at")
-    private long updatedAt;             // millis
+    private long updatedAt;
 
     @PrePersist @PreUpdate
     void touch() { this.updatedAt = System.currentTimeMillis(); }

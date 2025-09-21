@@ -26,8 +26,8 @@ alerts:
 
 app:
   incidents:
-    ttl-check-ms: 1000     # как было — раз в секунду проверяем истечение
-    default-ttl-sec: 40    # НОВОЕ: дефолтный TTL для новых инцидентов
+    ttl-check-ms: 1000
+    default-ttl-sec: 40
   node:
     id: ${NODE_ID:node-local}
     region: ${REGION_CODE:RU-MOW}
@@ -38,17 +38,17 @@ app:
       period-ms: 30000
   camera:
     monitor:
-      enabled: true              # автоскан включён
-      period-ms: 60000           # раз в минуту
-      analyzer: openrouter       # openrouter | noop
+      enabled: true
+      period-ms: 60000
+      analyzer: openrouter
       snapshot-base: http://gateway/snapshots/
-      snapshot-max-age-sec: 600  # 10 минут
+      snapshot-max-age-sec: 600
   ai:
     openrouter:
-      key: ${OPENROUTER_API_KEY:}                # можно пусто — анализатор просто пропустит тик
+      key: ${OPENROUTER_API_KEY:}
       model: openai/gpt-4o-mini
 
-ai:                       # (старый блок — оставил на случай обратной совместимости)
+ai:
   base-url: ${AI_BASE_URL:https://openrouter.ai/api/v1}
   api-key: ${AI_API_KEY:${OPENROUTER_API_KEY:}}
   model: ${AI_MODEL:openai/gpt-4o-mini}

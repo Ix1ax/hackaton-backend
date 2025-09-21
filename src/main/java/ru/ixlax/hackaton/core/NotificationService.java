@@ -12,14 +12,14 @@ import ru.ixlax.hackaton.domain.entity.Incident;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    @Autowired(required = false)        // <-- будет null, если бина нет
+    @Autowired(required = false)
     private JavaMailSender mail;
 
     @Value("${alerts.email.to:}")
     private String to;
 
     public void incidentRaised(Incident e) {
-        if (mail == null) return;               // <-- нет почты — тихо выходим
+        if (mail == null) return;
         if (to == null || to.isBlank()) return;
 
         var m = new SimpleMailMessage();

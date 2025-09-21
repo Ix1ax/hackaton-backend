@@ -32,7 +32,6 @@ public class AdminCameraController {
     private final SseHub sse;
     private final NotificationService notification;
 
-    /** Ручная проверка кадра. Возвращает "HIT: ..." или "OK". */
     @PostMapping("/detect")
     public String detect(@RequestParam(required = false) Long id,
                          @RequestParam(required = false) String externalId,
@@ -48,17 +47,15 @@ public class AdminCameraController {
         var hit = analyzer.detect(c, null, snapshotUrl);
         if (hit.isEmpty()) return "OK";
 
-        // 1) camera-alert (в вебсокеты/SSE)
         String stream = (c.getPublicUrl()!=null && !c.getPublicUrl().isBlank()) ? c.getPublicUrl() : c.getUrl();
         sse.publishCameraAlert(new CameraAlertDto(System.currentTimeMillis(), null, c.getId(), c.getName(), stream, c.getLat(), c.getLng()));
 
-        // 2) опционально создаём инцидент (чтобы ушло уведомление диспетчеру)
         if (createIncident) {
             long now = System.currentTimeMillis();
             var active = incidentRepo.findTopByObjectIdAndStatusInOrderByTsDesc(
                     "camera:"+c.getId(), List.of(IncidentStatus.NEW, IncidentStatus.CONFIRMED)
             ).orElse(null);
-            if (active == null || now - active.getTs() > 5 * 60_000) { // антиспам 5 мин
+            if (active == null || now - active.getTs() > 5 * 60_000) {
                 var e = new Incident();
                 e.setExternalId(UUID.randomUUID().toString());
                 e.setObjectId("camera:"+c.getId());

@@ -33,7 +33,6 @@ public class WsBridge {
     @PostConstruct
     public void init() {
 
-        // INCIDENT -> /topic/incidents + /topic/all
         Flux<IncidentDto> incidents = sse.events()
                 .filter(ev -> "incident".equals(ev.event()))
                 .map(ServerSentEvent::data)
@@ -46,7 +45,6 @@ public class WsBridge {
             tpl.convertAndSend("/topic/all", new WsEnvelope("INCIDENT", System.currentTimeMillis(), dto));
         });
 
-        // NEWS -> /topic/news + /topic/all
         Flux<NewsDto> news = sse.events()
                 .filter(ev -> "news".equals(ev.event()))
                 .map(ServerSentEvent::data)
@@ -59,8 +57,6 @@ public class WsBridge {
             tpl.convertAndSend("/topic/all", new WsEnvelope("NEWS", System.currentTimeMillis(), dto));
         });
 
-        // SENSOR -> /topic/sensors + /topic/all
-        // убрали sample(1s), чтобы события шли максимально быстро (реалтайм)
         Flux<SensorStatusDto> sensors = sse.events()
                 .filter(ev -> "sensor".equals(ev.event()))
                 .map(ServerSentEvent::data)
@@ -73,7 +69,6 @@ public class WsBridge {
             tpl.convertAndSend("/topic/all", new WsEnvelope("SENSOR", System.currentTimeMillis(), st));
         });
 
-        // CAMERA-ALERT -> /topic/camera-alerts + /topic/all
         Flux<CameraAlertDto> cams = sse.events()
                 .filter(ev -> "camera-alert".equals(ev.event()))
                 .map(ServerSentEvent::data)

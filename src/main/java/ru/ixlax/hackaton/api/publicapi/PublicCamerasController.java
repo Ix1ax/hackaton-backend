@@ -13,7 +13,6 @@ import java.util.List;
 public class PublicCamerasController {
     private final CameraRepo repo;
 
-    // PublicCamerasController
     @GetMapping
     public List<CameraDto> list(@RequestParam(required=false) String region){
         var list = (region==null || region.isBlank()) ? repo.findAll() : repo.findByRegionCode(region);

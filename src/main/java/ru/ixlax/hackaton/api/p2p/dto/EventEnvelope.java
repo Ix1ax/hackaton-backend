@@ -1,9 +1,9 @@
 package ru.ixlax.hackaton.api.p2p.dto;
 
 public record EventEnvelope(
-        String type,      // "INCIDENT" | "NEWS" (пока INCIDENT)
+        String type,
         String nodeId,
         long ts,
-        Object payload,   // List<IncidentDto>
-        String signature  // можно оставить null, позже HMAC
+        Object payload,
+        String signature
 ) {}

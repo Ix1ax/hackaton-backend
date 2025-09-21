@@ -22,7 +22,6 @@ public class AdminSensorsController {
     private final SensorService sensorService;
     private final SensorPolicyRepo policies;
 
-    // добавили мгновенную публикацию по WS и через SSE, чтобы не ждать симулятор/пулы
     private final SimpMessagingTemplate ws;
     private final SseHub sse;
     private final SensorCache cache;
@@ -31,13 +30,10 @@ public class AdminSensorsController {
     public Sensor register(@RequestBody ru.ixlax.hackaton.api.publicapi.dto.SensorRegisterDto dto){
         Sensor saved = sensorService.register(dto);
 
-        // кэш сразу обновим (на случай, если UI что-то запрашивает по кэшу)
         try { cache.put(saved); } catch (Exception ignore) {}
 
-        // мгновенно уведомляем админ-панель по вебсокетам
         try { ws.convertAndSend("/topic/admin/sensors/registered", saved); } catch (Exception ignore) {}
 
-        // и бросаем "OK/Registered" в общий SSE -> WS-бридж, чтобы оно отобразилось в «реалтайме»
         try {
             sse.publishSensor(new SensorStatusDto(
                     saved.getId(),
@@ -60,7 +56,6 @@ public class AdminSensorsController {
     @PostMapping("/push")
     public SensorStatusDto push(@RequestBody MeasurementDto dto){
         SensorStatusDto status = sensorService.push(dto);
-        // продублируем в админский канал для мгновенной отрисовки
         try { ws.convertAndSend("/topic/admin/sensors/status", status); } catch (Exception ignore) {}
         return status;
     }

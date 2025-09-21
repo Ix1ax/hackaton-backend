@@ -5,7 +5,7 @@ public record CameraAlertDto(
         String incidentExternalId,
         Long cameraId,
         String cameraName,
-        String streamUrl,   // использовать publicUrl
+        String streamUrl,
         double lat,
         double lng
 ) {}

@@ -22,16 +22,12 @@ public class Camera {
     private double lat;
     private double lng;
 
-    /** Радиус зоны покрытия в метрах (простая окружность) */
     private Integer radiusM = 300;
 
-    /** Оригинальный адрес источника (RTSP/HTTP/MJPEG/HLS) */
     private String url;
 
-    /** Публичная HLS/WebRTC/MJPEG ссылка, доступная из браузера через шлюз */
     private String publicUrl;
 
-    /** Ссылка на статичный кадр (jpeg/png), для vision-анализа камер */
     private String snapshotUrl;
 
     @Column(name="updated_at")

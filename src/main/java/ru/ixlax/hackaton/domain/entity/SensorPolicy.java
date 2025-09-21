@@ -15,14 +15,13 @@ public class SensorPolicy {
     private Long sensorId;
 
     @Enumerated(EnumType.STRING)
-    private SensorMode mode = SensorMode.AUTO;   // AUTO | MANUAL
+    private SensorMode mode = SensorMode.AUTO;
 
-    // Для метрик "чем больше — тем хуже"
-    private Double alertAbove;    // value > alertAbove -> ALERT
-    private Double warnAbove;     // value > warnAbove  -> WARN
-    private Double clearBelow;    // value < clearBelow -> RESOLVE
+    private Double alertAbove;
+    private Double warnAbove;
+    private Double clearBelow;
 
-    private Integer ttlSec;       // опционально: TTL инцидента
+    private Integer ttlSec;
 
     @Column(name = "updated_at")
     private long updatedAt;

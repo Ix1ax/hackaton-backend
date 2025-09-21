@@ -35,7 +35,7 @@ public class SensorService {
 
     @Transactional
     public Sensor register(SensorRegisterDto d){
-        String type = normalizeType(d.type()); // "RADIATION" | "WATER_LEVEL" | "LIGHT"
+        String type = normalizeType(d.type());
 
         if (type == null)
             throw new org.springframework.web.server.ResponseStatusException(

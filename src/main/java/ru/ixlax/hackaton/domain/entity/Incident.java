@@ -21,19 +21,13 @@ public class Incident {
     private Long id;
 
     @Column(unique = true)
-    private String externalId;   // для P2P идемпотентности
+    private String externalId;
 
     private String objectId;
 
-    /**
-     * INFO/WARN/HIGH/CRITICAL
-     */
     @Enumerated(EnumType.STRING)
     private IncidentLevel level;
 
-    /**
-     * MAGNETIC_VORTEX/RADIATION_BURST/UFO...
-     */
     @Enumerated(EnumType.STRING)
     private IncidentKind kind;
 

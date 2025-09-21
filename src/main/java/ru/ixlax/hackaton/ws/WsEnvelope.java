@@ -2,7 +2,7 @@
 package ru.ixlax.hackaton.ws;
 
 public record WsEnvelope(
-        String type,   // INCIDENT | NEWS | SENSOR | CAMERA_ALERT | PING
+        String type,
         long ts,
         Object payload
 ) {}

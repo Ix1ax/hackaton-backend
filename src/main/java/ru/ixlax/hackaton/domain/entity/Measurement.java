@@ -25,8 +25,8 @@ public class Measurement {
     private Double lat;
     private Double lng;
 
-    private String type;   // RADIATION/SMOKE/AIR_QUALITY/FLOOD...
-    @Column(name = "val")          // <-- БЫЛО: private double value;
+    private String type;
+    @Column(name = "val")
     private double value;
-    private String unit;   // μSv/h, %, AQI, —
+    private String unit;
 }

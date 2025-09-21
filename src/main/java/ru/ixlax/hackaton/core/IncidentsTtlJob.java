@@ -20,7 +20,6 @@ public class IncidentsTtlJob {
     private final SseHub sse;
     private final P2PPublisher p2p;
 
-    // проверяем TTL/истечение каждую секунду, чтобы инциденты "пропадали" вовремя
     @Scheduled(fixedDelayString = "${app.incidents.ttl-check-ms:1000}")
     public void tick() {
         long now = System.currentTimeMillis();

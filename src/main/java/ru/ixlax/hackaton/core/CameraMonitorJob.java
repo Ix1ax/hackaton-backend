@@ -171,7 +171,6 @@ public class CameraMonitorJob {
         sse.publish(dto);
         p2p.broadcastIncidents(java.util.List.of(dto));
 
-        // авто-новость для инцидента от камеры
         News n = new News();
         n.setTs(saved.getTs());
         n.setTitle("Обнаружена аномалия: " + saved.getKind());
