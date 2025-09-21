@@ -1,5 +1,6 @@
 package ru.ixlax.hackaton.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.*;
 import java.util.List;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
     @Bean
@@ -51,17 +53,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 
-    @Bean
-    SecurityFilterChain security(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(a -> a
-                        .requestMatchers("/api/public/**","/ws/**","/actuator/**").permitAll()
-                        .anyRequest().permitAll()
-                )
-                .httpBasic(b -> b.disable())
-                .formLogin(f -> f.disable())
-                .build();
-    }
 }

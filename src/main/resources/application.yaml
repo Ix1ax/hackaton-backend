@@ -8,29 +8,46 @@ spring:
     hibernate.ddl-auto: update
     show-sql: false
   profiles:
-    active: stub
+    active: ${SPRING_PROFILES_ACTIVE:prod}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
 
 server:
   port: 8080
+
+cors:
+  origins: "*"
+
+alerts:
+  email:
+    to: ${ALERT_EMAIL_TO:}
 
 app:
   node:
     id: ${NODE_ID:node-local}
     region: ${REGION_CODE:RU-MOW}
-    key: local-secret
     peers: ${PEERS:}
-  # registry-url: http://gateway/api/peers
   sensors:
     simulate:
       enabled: true
-      period-ms: 10000     # раз в 10 секунд
+      period-ms: 30000
+  camera:
+    monitor:
+      enabled: true              # автоскан включён
+      period-ms: 60000           # раз в минуту
+      analyzer: openrouter       # openrouter | noop
+      snapshot-base: http://gateway/snapshots/
+      snapshot-max-age-sec: 600  # 10 минут
+  ai:
+    openrouter:
+      key: ${OPENROUTER_API_KEY:}                # можно пусто — анализатор просто пропустит тик
+      model: openai/gpt-4o-mini
 
-cors:
-  origins: "*"
-
-ai:
+ai:                       # (старый блок — оставил на случай обратной совместимости)
   base-url: ${AI_BASE_URL:https://openrouter.ai/api/v1}
-  api-key: ${AI_API_KEY:put-real-key-here}
-  model: ${AI_MODEL:deepseek/deepseek-chat}
+  api-key: ${AI_API_KEY:${OPENROUTER_API_KEY:}}
+  model: ${AI_MODEL:openai/gpt-4o-mini}
   timeout-ms: ${AI_TIMEOUT_MS:15000}
   temperature: ${AI_TEMPERATURE:0.2}

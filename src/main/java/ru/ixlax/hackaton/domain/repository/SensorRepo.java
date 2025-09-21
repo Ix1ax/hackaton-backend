@@ -27,4 +27,7 @@ public interface SensorRepo extends JpaRepository<Sensor, Long> {
 
     // BBox запрос для публичного API:
     List<Sensor> findByLatBetweenAndLngBetween(double minLat, double maxLat, double minLng, double maxLng);
+    // src/main/java/ru/ixlax/hackaton/domain/repository/SensorRepo.java
+    long countByTypeIgnoreCase(String type);
+    boolean existsByTypeIgnoreCase(String type);
 }

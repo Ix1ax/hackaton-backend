@@ -3,9 +3,16 @@ services:
     image: nginx:alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./public:/usr/share/nginx/html:ro   # тут лежат снапшоты
     ports:
       - "8080:80"
-    depends_on: [node-a, node-b, node-c]
+    depends_on:
+      node-a:
+        condition: service_healthy
+      node-b:
+        condition: service_healthy
+      node-c:
+        condition: service_healthy
     networks: [mesh]
 
   node-a:
@@ -15,9 +22,11 @@ services:
       - REGION_CODE=RU-MOW
       - PEERS=http://node-b:8080,http://node-c:8080
       - AI_BASE_URL=https://openrouter.ai/api/v1
-      - AI_API_KEY=${AI_API_KEY}
-      - AI_MODEL=deepseek/deepseek-chat
-      - SPRING_PROFILES_ACTIVE=${PROFILE}
+      - AI_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - APP_CAMERA_MONITOR_ANALYZER=green
+      - AI_MODEL=openai/gpt-4o-mini
+      - SPRING_PROFILES_ACTIVE=stub        # ← сидер только на одной ноде!
     volumes:
       - ./data/node-a:/app/data
     networks: [mesh]
@@ -29,9 +38,11 @@ services:
       - REGION_CODE=RU-TVE
       - PEERS=http://node-a:8080,http://node-c:8080
       - AI_BASE_URL=https://openrouter.ai/api/v1
-      - AI_API_KEY=${AI_API_KEY}
-      - AI_MODEL=deepseek/deepseek-chat
-      - SPRING_PROFILES_ACTIVE=${PROFILE}
+      - AI_API_KEY=${OPENROUTER_API_KEY}
+      - APP_CAMERA_MONITOR_ANALYZER=green
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - AI_MODEL=openai/gpt-4o-mini
+      - SPRING_PROFILES_ACTIVE=prod        # ← без сидера
     volumes:
       - ./data/node-b:/app/data
     networks: [mesh]
@@ -43,12 +54,28 @@ services:
       - REGION_CODE=RU-SMO
       - PEERS=http://node-a:8080,http://node-b:8080
       - AI_BASE_URL=https://openrouter.ai/api/v1
-      - AI_API_KEY=${AI_API_KEY}
-      - AI_MODEL=deepseek/deepseek-chat
-      - SPRING_PROFILES_ACTIVE=${PROFILE}
+      - AI_API_KEY=${OPENROUTER_API_KEY}
+      - APP_CAMERA_MONITOR_ANALYZER=green
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - AI_MODEL=openai/gpt-4o-mini
+      - SPRING_PROFILES_ACTIVE=prod        # ← без сидера
     volumes:
       - ./data/node-c:/app/data
     networks: [mesh]
+
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: mediamtx
+    restart: unless-stopped
+    ports:
+      - "8554:8554"   # RTSP
+      - "1935:1935"   # RTMP IN
+      - "8888:8888"   # HLS OUT
+      - "8889:8889"   # WebRTC
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    networks: [ mesh ]
+
 
 networks:
   mesh:

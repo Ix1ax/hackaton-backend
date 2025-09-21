@@ -42,7 +42,7 @@ public class PublicController {
         long s = since == null ? 0 : since;
         Pageable pg = pageable(page, size);
 
-        Page<Incident> res = incidentRepo.findByTsGreaterThanEqualAndLatBetweenAndLngBetween(
+        Page<Incident> res = incidentRepo.findActiveByBboxSince(
                 s, minLat, maxLat, minLng, maxLng, pg
         );
 
@@ -83,7 +83,7 @@ public class PublicController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<IncidentDto>> stream() { return sse.stream(); }
 
-    // мапинги
+    // маппинги
     private IncidentDto toDto(Incident e) {
         return new IncidentDto(e.getId(), e.getExternalId(), e.getObjectId(),
                 e.getLevel(), e.getKind(), e.getReason(),
@@ -95,5 +95,17 @@ public class PublicController {
         return new NewsDto(n.getId(), n.getTs(), n.getTitle(), n.getBody(),
                 n.getRegionCode(), n.getSource(), n.getIncidentExternalId(),
                 n.getPlaceId(), n.getLat(), n.getLng(), n.getStatus());
+    }
+
+    @GetMapping("/ping")
+    public ru.ixlax.hackaton.api.p2p.PeerHealthService.Status ping(
+            ru.ixlax.hackaton.api.p2p.PeerHealthService svc) {
+        return svc.selfPing();
+    }
+
+    @GetMapping("/peers/health")
+    public java.util.List<ru.ixlax.hackaton.api.p2p.PeerHealthService.Status> peersHealth(
+            ru.ixlax.hackaton.api.p2p.PeerHealthService svc) {
+        return svc.snapshot();
     }
 }

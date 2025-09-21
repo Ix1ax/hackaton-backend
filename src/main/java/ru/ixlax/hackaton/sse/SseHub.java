@@ -52,4 +52,10 @@ public class SseHub {
                 .build();
         eventSink.tryEmitNext(ev);
     }
+
+    public void publishCameraAlert(ru.ixlax.hackaton.api.publicapi.dto.CameraAlertDto dto) {
+        var ev = ServerSentEvent.<Object>builder().event("camera-alert").data(dto).build();
+        eventSink.tryEmitNext(ev);
+    }
+
 }

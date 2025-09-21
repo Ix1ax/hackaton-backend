@@ -4,17 +4,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.ixlax.hackaton.core.AiDigestJob;
+import ru.ixlax.hackaton.core.CameraMonitorJob;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/ai")
-public class AdminAiController {
-    private final AiDigestJob job;
+@RequestMapping("/api/admin/camera")
+public class AdminCameraMonitorController {
 
-    @PostMapping("/run-digest")
-    public String runDigest() {
-        job.run();
+    private final CameraMonitorJob job;
+
+    @PostMapping("/scan")
+    public String scanNow() {
+        job.tick();
         return "OK";
     }
 }

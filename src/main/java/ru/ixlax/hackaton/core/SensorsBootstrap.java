@@ -2,15 +2,19 @@ package ru.ixlax.hackaton.core;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import ru.ixlax.hackaton.domain.entity.Sensor;
 import ru.ixlax.hackaton.domain.repository.SensorRepo;
 
 import java.util.List;
 
+// src/main/java/ru/ixlax/hackaton/core/SensorsBootstrap.java
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.sensors.bootstrap.enabled", havingValue = "true", matchIfMissing = false)
 public class SensorsBootstrap implements CommandLineRunner {
+
     private final SensorRepo sensors;
 
     @Override public void run(String... args) {
@@ -24,7 +28,7 @@ public class SensorsBootstrap implements CommandLineRunner {
                 new C("RU-SMO", 54.7818, 32.0401)
         );
 
-        String[] types = {"RADIATION","SMOKE","AIR_QUALITY","FLOOD"};
+        String[] types = {"RADIATION","WATER_LEVEL","LIGHT"}; // было 4 типа
 
         long id = 1;
         for (var c : centers) {

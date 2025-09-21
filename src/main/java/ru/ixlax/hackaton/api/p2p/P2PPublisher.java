@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import ru.ixlax.hackaton.api.p2p.dto.EventEnvelope;
+import ru.ixlax.hackaton.api.publicapi.dto.CameraDto;
 import ru.ixlax.hackaton.api.publicapi.dto.IncidentDto;
 import ru.ixlax.hackaton.api.publicapi.dto.PlaceDto;
 import ru.ixlax.hackaton.api.publicapi.dto.SensorDto;
@@ -44,6 +45,12 @@ public class P2PPublisher {
     public void broadcastSensors(List<SensorDto> dtos){
         if (dtos==null || dtos.isEmpty()) return;
         outbox.add(new EventEnvelope("SENSOR", nodeId, System.currentTimeMillis(), dtos, null));
+        drain();
+    }
+
+    public void broadcastCameras(java.util.List<CameraDto> dtos){
+        if (dtos==null || dtos.isEmpty()) return;
+        outbox.add(new EventEnvelope("CAMERA", nodeId, System.currentTimeMillis(), dtos, null));
         drain();
     }
 

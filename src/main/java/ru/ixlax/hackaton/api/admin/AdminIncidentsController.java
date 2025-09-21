@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.ixlax.hackaton.api.publicapi.dto.IncidentDto;
 import ru.ixlax.hackaton.api.p2p.P2PPublisher;
+import ru.ixlax.hackaton.core.CameraService;
 import ru.ixlax.hackaton.domain.entity.*;
 import ru.ixlax.hackaton.domain.entity.enums.incident.*;
 import ru.ixlax.hackaton.domain.repository.*;
@@ -20,6 +21,7 @@ public class AdminIncidentsController {
     private final NewsRepo newsRepo;
     private final SseHub sse;
     private final P2PPublisher p2p;
+    private final CameraService cameraService;
 
     @PostMapping("/spawn")
     public IncidentDto spawn(@RequestParam double lat, @RequestParam double lng,
@@ -27,27 +29,40 @@ public class AdminIncidentsController {
                              @RequestParam(defaultValue = "UNKNOWN")  IncidentKind  kind,
                              @RequestParam(defaultValue = "manual")   String reason,
                              @RequestParam(defaultValue = "RU-MOW")    String region) {
+
         var e = new Incident();
-        e.setExternalId(UUID.randomUUID().toString());
+        e.setExternalId(java.util.UUID.randomUUID().toString());
         e.setLevel(level); e.setKind(kind); e.setReason(reason);
         e.setLat(lat); e.setLng(lng); e.setTs(System.currentTimeMillis());
         e.setRegionCode(region); e.setOriginRegion(region);
-        e = incidentRepo.save(e);
 
-        var dto = toDto(e);
+        final Incident saved = incidentRepo.save(e); // <- делаем final ссылку
+
+        var dto = toDto(saved);
+
         // авто-новость
         var n = new News();
-        n.setTs(e.getTs());
-        n.setTitle("Обнаружена аномалия: " + e.getKind());
-        n.setBody("Уровень: " + e.getLevel() + ". Причина: " + e.getReason());
-        n.setRegionCode(e.getRegionCode());
+        n.setTs(saved.getTs());
+        n.setTitle("Обнаружена аномалия: " + saved.getKind());
+        n.setBody("Уровень: " + saved.getLevel() + ". Причина: " + saved.getReason());
+        n.setRegionCode(saved.getRegionCode());
         n.setSource("DISPATCHER");
-        n.setIncidentExternalId(e.getExternalId());
-        n.setLat(e.getLat()); n.setLng(e.getLng());
+        n.setIncidentExternalId(saved.getExternalId());
+        n.setLat(saved.getLat()); n.setLng(saved.getLng());
         newsRepo.save(n);
 
         sse.publish(dto);
-        p2p.broadcastIncidents(List.of(dto));
+        p2p.broadcastIncidents(java.util.List.of(dto));
+
+        // выносим значения в final локальные, лямбда перестанет ругаться
+        final String extId = saved.getExternalId();
+        final double latVal = saved.getLat();
+        final double lngVal = saved.getLng();
+        final String reg    = saved.getRegionCode();
+
+        cameraService.pickFor(latVal, lngVal, reg)
+                .ifPresent(cam -> cameraService.publishAlert(extId, cam, latVal, lngVal));
+
         return dto;
     }
 

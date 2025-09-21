@@ -5,5 +5,7 @@ public record SensorStatusDto(
         String type,
         SensorHealth health,
         String message,
+        Double lat,
+        Double lng,
         long ts
 ) {}

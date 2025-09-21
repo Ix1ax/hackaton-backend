@@ -45,31 +45,23 @@ public class SensorSimulator {
 
     private Sample valueFor(String type) {
         double p = rnd.nextDouble();
-
-        switch (String.valueOf(type).toUpperCase()) {
+        switch ((type+"").toUpperCase()) {
             case "RADIATION" -> {
-                if (p < 0.02)  return new Sample( 1.8 + rnd.nextDouble()*1.2, "μSv/h"); // ALERT ~2.0+
-                if (p < 0.10)  return new Sample( 0.6 + rnd.nextDouble()*0.8, "μSv/h"); // WARN  ~0.5–1.4
-                return new Sample( 0.08 + rnd.nextDouble()*0.30, "μSv/h");               // OK    ~0.08–0.38
+                if (p < 0.02)  return new Sample(2.1 + rnd.nextDouble()*1.2, "μSv/h"); // ALERT > ~2.0
+                if (p < 0.10)  return new Sample(0.6 + rnd.nextDouble()*0.8, "μSv/h"); // WARN  > ~0.5
+                return new Sample(0.08 + rnd.nextDouble()*0.30, "μSv/h");
             }
-            case "SMOKE" -> {
-                if (p < 0.02)  return new Sample( 0.90 + rnd.nextDouble()*0.10, null);   // ALERT >0.9
-                if (p < 0.10)  return new Sample( 0.35 + rnd.nextDouble()*0.40, null);   // WARN  ~0.35–0.75
-                return new Sample( 0.02 + rnd.nextDouble()*0.20, null);                  // OK    ~0.02–0.22
+            case "WATER_LEVEL" -> { // 0..1 – нормируемую “высоту”/заполнение
+                if (p < 0.02)  return new Sample(0.92 + rnd.nextDouble()*0.08, null); // ALERT >0.9
+                if (p < 0.10)  return new Sample(0.55 + rnd.nextDouble()*0.25, null); // WARN  >0.5
+                return new Sample(0.02 + rnd.nextDouble()*0.35, null);
             }
-            case "AIR_QUALITY" -> {
-                if (p < 0.02)  return new Sample( 220 + rnd.nextDouble()*60, null);      // ALERT >200
-                if (p < 0.10)  return new Sample( 130 + rnd.nextDouble()*60, null);      // WARN  >120
-                return new Sample( 45 + rnd.nextDouble()*60, null);                       // OK
+            case "LIGHT" -> { // 0..1 – относительная яркость (в реале: lux/линейка)
+                if (p < 0.02)  return new Sample(0.95 + rnd.nextDouble()*0.05, null); // ALERT вспышка/всполох
+                if (p < 0.10)  return new Sample(0.70 + rnd.nextDouble()*0.20, null); // WARN аномально ярко
+                return new Sample(0.10 + rnd.nextDouble()*0.50, null);
             }
-            case "FLOOD" -> {
-                if (p < 0.02)  return new Sample( 0.92 + rnd.nextDouble()*0.08, null);   // ALERT >0.9
-                if (p < 0.10)  return new Sample( 0.55 + rnd.nextDouble()*0.25, null);   // WARN  >0.5
-                return new Sample( 0.02 + rnd.nextDouble()*0.35, null);                  // OK
-            }
-            default -> {
-                return new Sample( rnd.nextDouble(), null);
-            }
+            default -> { return new Sample(rnd.nextDouble(), null); }
         }
     }
 
